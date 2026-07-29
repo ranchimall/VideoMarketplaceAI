@@ -2909,6 +2909,27 @@
                             <sm-copy class="user-flo-id" value=${floGlobals.myFloID}></sm-copy>
                         </div>
                         <div class="grid gap-0-5">
+                            <b>My DOGE address</b>
+                            <sm-copy id="user_doge_id" value=${floGlobals.addresses?.doge || ''}></sm-copy>
+                        </div>
+                        <div class="grid gap-0-5">
+                            <b>My LTC (Litecoin) address</b>
+                            <sm-copy id="user_ltc_id" value=${floGlobals.addresses?.ltc || ''}></sm-copy>
+                        </div>
+                        <div class="grid gap-0-5">
+                            <b>My TAO (Bittensor) address</b>
+                            <sm-copy id="user_tao_id" value=${floGlobals.addresses?.tao || ''}></sm-copy>
+                        </div>
+                        <div class="grid gap-0-5">
+                            <b>My NEAR address</b>
+                            <sm-copy id="user_near_id" value=${floGlobals.addresses?.near || ''}></sm-copy>
+                        </div>
+                        <div class="grid gap-0-5">
+                            <b>My FET (Fetch.ai) address</b>
+                            <sm-copy id="user_fet_id" value=${floGlobals.addresses?.fet || ''}></sm-copy>
+                        </div>
+
+                        <div class="grid gap-0-5">
                             <b>My Bitcoin address</b>
                             <sm-copy class="user-btc-id" value=${floGlobals.myBtcID}></sm-copy>
                         </div>
@@ -2955,14 +2976,6 @@
                         <div class="grid gap-0-5">
                             <b>My TRON address</b>
                             <sm-copy id="user_tron_id" value=${floGlobals.addresses?.tron || ''}></sm-copy>
-                        </div>
-                        <div class="grid gap-0-5">
-                            <b>My DOGE address</b>
-                            <sm-copy id="user_doge_id" value=${floGlobals.addresses?.doge || ''}></sm-copy>
-                        </div>
-                        <div class="grid gap-0-5">
-                            <b>My LTC (Litecoin) address</b>
-                            <sm-copy id="user_ltc_id" value=${floGlobals.addresses?.ltc || ''}></sm-copy>
                         </div>
                         <div class="grid gap-0-5">
                             <b>My BCH (Bitcoin Cash) address</b>

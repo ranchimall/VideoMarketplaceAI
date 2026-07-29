@@ -441,6 +441,9 @@ async function deriveAllBlockchainAddresses(wif) {
     xlm: null,
     sol: null,
     ada: null,
+    tao: null,
+    near: null,
+    fet: null,
   };
 
   try {
@@ -520,6 +523,21 @@ async function deriveAllBlockchainAddresses(wif) {
     addresses.ada = await convertWIFtoCardanoAddress(wif);
   } catch (e) {
     console.warn("ADA derivation failed:", e);
+  }
+  try {
+    addresses.tao = await convertWIFtoTaoAddress(wif);
+  } catch (e) {
+    console.warn("TAO derivation failed:", e);
+  }
+  try {
+    addresses.near = convertWIFtoNearAddress(wif);
+  } catch (e) {
+    console.warn("NEAR derivation failed:", e);
+  }
+  try {
+    addresses.fet = convertWIFtoFetchAddress(wif);
+  } catch (e) {
+    console.warn("FET derivation failed:", e);
   }
 
   return addresses;
@@ -1023,6 +1041,134 @@ async function convertWIFtoCardanoAddress(wif) {
     return wallet.Cardano.address;
   } catch (error) {
     console.error("WIF to Cardano conversion error:", error);
+    return null;
+  }
+}
+
+/**
+ * Convert WIF private key to TAO (Bittensor) address
+ * Uses Sr25519 (Schnorrkel) keypair with SS58 address encoding
+ * @param {string} wif - WIF format private key
+ * @returns {Promise<string|null>} TAO address (SS58 format) or null on error
+ */
+async function convertWIFtoTaoAddress(wif) {
+  try {
+    if (typeof bitjs === "undefined") {
+      throw new Error("bitjs library not loaded");
+    }
+
+    const polkadotAPI = window.polkadotUtilCrypto;
+
+    if (!polkadotAPI) {
+      throw new Error("@polkadot/util-crypto library not loaded");
+    }
+
+    if (typeof polkadotAPI.cryptoWaitReady === "function") {
+      await polkadotAPI.cryptoWaitReady();
+    }
+
+    const decoded = bitjs.wif2privkey(wif);
+    if (!decoded || !decoded.privkey) {
+      throw new Error("Failed to decode WIF private key");
+    }
+
+    const privKeyHex = decoded.privkey.substring(0, 64);
+    const privBytes = Crypto.util.hexToBytes(privKeyHex);
+    const seed = new Uint8Array(privBytes.slice(0, 32));
+
+    const keyPair = polkadotAPI.sr25519PairFromSeed(seed);
+    const taoAddress = polkadotAPI.encodeAddress(keyPair.publicKey, 42);
+
+    return taoAddress;
+  } catch (error) {
+    console.error("WIF to TAO conversion error:", error);
+    return null;
+  }
+}
+
+/**
+ * Convert WIF private key to NEAR address
+ * Uses Ed25519 keypair
+ * @param {string} wif - WIF format private key
+ * @returns {string|null} NEAR address (hex format) or null on error
+ */
+function convertWIFtoNearAddress(wif) {
+  try {
+    if (typeof bitjs === "undefined") {
+      throw new Error("bitjs library not loaded");
+    }
+    if (typeof nacl === "undefined") {
+      throw new Error("nacl (TweetNaCl) library not loaded");
+    }
+
+    const decoded = bitjs.wif2privkey(wif);
+    if (!decoded || !decoded.privkey) {
+      throw new Error("Failed to decode WIF private key");
+    }
+
+    const privKeyHex = decoded.privkey.substring(0, 64);
+    const privBytes = Crypto.util.hexToBytes(privKeyHex);
+    const seed = new Uint8Array(privBytes.slice(0, 32));
+
+    const keyPair = nacl.sign.keyPair.fromSeed(seed);
+    const nearAddress = Crypto.util.bytesToHex(keyPair.publicKey);
+
+    return nearAddress;
+  } catch (error) {
+    console.error("WIF to NEAR conversion error:", error);
+    return null;
+  }
+}
+
+/**
+ * Convert WIF private key to FET (Fetch.ai) address
+ * Uses Bech32 encoding
+ * @param {string} wif - WIF format private key
+ * @returns {string|null} FET address or null on error
+ */
+function convertWIFtoFetchAddress(wif) {
+  try {
+    if (typeof bitjs === "undefined") {
+      throw new Error("bitjs library not loaded");
+    }
+    if (typeof coinjs === "undefined") {
+      throw new Error("coinjs library not loaded");
+    }
+
+    const decode = Bitcoin.Base58.decode(wif);
+    const keyWithVersion = decode.slice(0, decode.length - 4);
+    let key = keyWithVersion.slice(1);
+    
+    let compressed = true;
+    if (key.length >= 33 && key[key.length - 1] === 0x01) {
+      key = key.slice(0, key.length - 1);
+    } else {
+      compressed = false;
+    }
+
+    const privKeyHex = Crypto.util.bytesToHex(key);
+
+    const origPub = bitjs.pub;
+    const origPriv = bitjs.priv;
+    const origBitjsCompressed = bitjs.compressed;
+    
+    bitjs.compressed = true;
+
+    const pubKeyHex = bitjs.newPubkey(privKeyHex);
+    const pubKeyBytes = Crypto.util.hexToBytes(pubKeyHex);
+    const sha256Hash = Crypto.SHA256(pubKeyBytes, { asBytes: true });
+    const ripemd160Hash = ripemd160(sha256Hash, { asBytes: true });
+
+    const bech32Words = coinjs.bech32_convert(ripemd160Hash, 8, 5, true);
+    const fetchAddress = coinjs.bech32_encode("fetch", bech32Words);
+
+    bitjs.pub = origPub;
+    bitjs.priv = origPriv;
+    bitjs.compressed = origBitjsCompressed;
+
+    return fetchAddress;
+  } catch (error) {
+    console.error("WIF to FET conversion error:", error);
     return null;
   }
 }

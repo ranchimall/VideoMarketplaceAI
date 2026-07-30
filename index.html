@@ -932,11 +932,11 @@
         // Global variables
         const { html, render: renderElem } = uhtml;
         const { signal, computed, effect } = preactSignalsCore;
-        //Checks for creatoret connection status
+        //Checks for internet connection status
         if (!navigator.onLine)
-            floGlobals.connectionErrorNotification = notify('There seems to be a problem connecting to the creatoret, Please check you creatoret connection.', 'error')
+            floGlobals.connectionErrorNotification = notify('There seems to be a problem connecting to the internet, Please check your internet connection.', 'error')
         window.addEventListener('offline', () => {
-            floGlobals.connectionErrorNotification = notify('There seems to be a problem connecting to the creatoret, Please check you creatoret connection.', 'error')
+            floGlobals.connectionErrorNotification = notify('There seems to be a problem connecting to the internet, Please check your internet connection.', 'error')
         })
         window.addEventListener('online', () => {
             getRef('notification_drawer').remove(floGlobals.connectionErrorNotification)
